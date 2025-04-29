@@ -21,14 +21,14 @@ def generate_passphrase():
     defaultsym_var = defaultsym_var.get()
     sym_pos_var = sym_pos_var.get()
     
-    open('C:/Users/Jeremy.Graue/ProjectGoodPhrase/Passphrase Project/EFF-long-word-list.txt',
+    open("C:/Users/jerem/OneDrive/Documents/GitHub/ProjectGoodPhrase/EFF-Long-Word-List.txt",
          'r')
     default_special = "~!@#$%^&*()-_=+?"
     EFFdict = {
 
     }
 
-    with open('C:/Users/Jeremy.Graue/ProjectGoodPhrase/Passphrase Project/EFF-long-word-list.txt', 'r') as file:
+    with open('C:/Users/jerem/OneDrive/Documents/GitHub/ProjectGoodPhrase/EFF-Long-Word-List.txt', 'r') as file:
         for line in file:
             parts = line.strip().split('\t')
             if len(parts) == 2:
