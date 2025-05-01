@@ -1,24 +1,28 @@
 # -*- coding: utf-8 -*-
 """
+Project Good Phrase
+
 Created on Tue Apr 29 13:09:21 2025
 
 @author: Jeremy.Graue
 """
 
 # 04/29/25 - Notes for later: Issue with variables, need to fix, causing conflict with passphrase generator code.
+# 05/01/25 - Issues with tkinter, final_passphrase not printing to window.
 
 import random
 import tkinter as tk
+import tkinter.font as tkFont
 # Gets information from PassphraseProject.py
 def generate_passphrase():
-    global num_words_entry, cap_check, num_check, num_pos_var, sym_var, custom_symbols_entry, defaultsym_var, sym_pos_var
-    num_words_entry = num_words_entry.get()
+    global num_words_entry, cap_check, num_check, num_pos_var, sym_var, custom_symbols_entry, defaultsym_var, sym_pos_var, result_label
+    num_words_str = num_words_entry.get()
     cap_check = capitalize_var.get()
     num_check = num_var.get()
-    num_pos_var = num_pos_var.get()
-    sym_var = sym_var.get()
-    custom_symbols_entry = custom_symbols_entry.get()
-    defaultsym_var = defaultsym_var.get()
+    num_pos = num_pos_var.get()
+    sym_check = sym_var.get()
+    user_sym = custom_symbols_entry.get()
+    defaultsym = defaultsym_var.get()
     sym_pos = sym_pos_var.get()
     
     default_special = "~!@#$%^&*()-_=+?"
@@ -26,8 +30,9 @@ def generate_passphrase():
 
     }
     try:
-        with open('C:/Users/Jeremy.Graue/ProjectGoodPhrase/Passphrase Project/EFF-long-word-list.txt', 'r') as file:
-            print("File opened successfully!")
+        with open('C:/Users/Jeremy.Graue/ProjectGoodPhrase/EFF-Long-Word-List.txt', 'r') as file:
+            # Uncomment if having trouble with word list. VVVVV
+            #print("File opened successfully!")
             for line in file:
                 parts = line.strip().split('\t')
                 if len(parts) == 2:
@@ -36,7 +41,7 @@ def generate_passphrase():
     #In case of dictionary failure, uncomment this line. VVVVV            
     #print("EFFdict length:", len(EFFdict))
     except FileNotFoundError: 
-        result_label.config(text="Error: EFF word list file not found! Check file path.")
+        result_entry.config(text="Error: EFF word list file not found! Check file path.")
         return # Exit function if the file is not found.
             
     num_rolls = 5
@@ -44,14 +49,15 @@ def generate_passphrase():
     final_passphrase = []
 
     try:
-        num_words_entry = int(num_words_entry)
+        num_words = int(num_words_str)
         
     except ValueError:
-        print("Invalid input. Please enter a whole number.")
+        result_entry.config(text="Invalid input. Please enter a whole number.")
+        return
         
     else:
         passphrase_words = []
-        for _ in range(num_words_entry):
+        for _ in range(num_words):
             diceRoll = [] #reset diceroll for each iteration
             for _ in range(num_rolls):
                 roll = random.randint(1, 6)
@@ -68,35 +74,33 @@ def generate_passphrase():
     num_amount = 0 # If the if statement is a no, it atleast have a value to add.
     if num_check == True:
         num_amount = 1
-        num_pos_var = b
                         
     for _ in range(num_amount):
         random_number = random.randint(111, 999)
         
-        if num_pos_var == "b":
+        if num_pos == "b":
             final_passphrase.insert(0, str(random_number))
-        elif num_pos_var == "m":
+        elif num_pos == "m":
             middle_index = len(final_passphrase) // 2
             final_passphrase.insert(middle_index, str(random_number))
-        elif num_pos_var == "e":
+        elif num_pos == "e":
             final_passphrase.append(str(random_number))
         else:
-            print("Invalid placement option. Numbers not added.")
+            result_entry.config(text="Invalid placement option. Numbers not added.")
     else:
         pass #User doesn't want numbers? Cool, do nothing.
         
-        if sym_var == True:
+        if sym_check == True:
 
-            if defaultsym_var == False:
-                user_sym = custom_symbols_entry.get() # Get from GUI
+            if defaultsym == False:
                 if user_sym: # Only choose if the string is not empty
                     random_symbol = str(random.choice(user_sym))
-            else:
-                random_symbol = str(random.choice(default_special)) # Fallback to default if user enters nothing
+            else: # Fallback to default if user enters nothing
+                random_symbol = str(random.choice(default_special)) 
         else:
             random_symbol = str(random.choice(default_special))
 
-        if sym_pos == "b": # Use the Tkinter variable's value
+        if sym_pos == "b": # Symbol position radial selection
             final_passphrase.insert(0, str(random_symbol))
         elif sym_pos == "m":
             middle_index = len(final_passphrase) // 2
@@ -108,7 +112,12 @@ def generate_passphrase():
         else:
             print("Invalid symbol placement option. Symbol not added.")
 
+# The read-only shuffle!
         final_passphrase = " ".join(final_passphrase)
+        result_entry.config(state="normal") 
+        result_entry.delete(0, tk.END)
+        result_entry.insert(0, final_passphrase)
+        result_entry.config(state="readonly")
         pass
 
 # Create the main window
@@ -116,6 +125,8 @@ window = tk.Tk()
 
 # Set the title of the window
 window.title("Passphrase Generator")
+
+large_font = tkFont.Font(family="Verdana", size=16)
 
 # Number of words
 num_words_label = tk.Label(window, text="Enter the number of words: ")
@@ -177,8 +188,9 @@ generate_button = tk.Button(window, text="Generate Passphrase!", command=generat
 generate_button.pack()
 
 # Label to display the generated passphrase (starts out empty)
-result_label = tk.Label(window, text=" ")
-result_label.pack()
+result_entry = tk.Entry(window, width=40, justify="center", font=large_font) # Adjust width as needed.
+result_entry.config(state="readonly") # Makes the entry section read-only.
+result_entry.pack(ipady=20) # Adjusts the height of the result box.
 
 # Start the Tkinter event loop (keeps the window open and responsive)
 window.mainloop()
