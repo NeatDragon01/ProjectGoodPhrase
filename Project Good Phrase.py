@@ -17,10 +17,11 @@ import tkinter.font as tkFont
 def generate_passphrase():
     global num_words_entry, cap_check, num_check, num_pos_var, sym_var, custom_symbols_entry, defaultsym_var, sym_pos_var, result_label
     num_words_str = num_words_entry.get()
+    max_char_str = max_char_entry.get()
     cap_check = capitalize_var.get()
     num_check = num_var.get()
     num_pos = num_pos_var.get()
-    sym_check = sym_var.get()
+    symbol = sym_var.get()
     user_sym = custom_symbols_entry.get()
     defaultsym = defaultsym_var.get()
     sym_pos = sym_pos_var.get()
@@ -41,18 +42,39 @@ def generate_passphrase():
     #In case of dictionary failure, uncomment this line. VVVVV            
     #print("EFFdict length:", len(EFFdict))
     except FileNotFoundError: 
-        result_entry.config(text="Error: EFF word list file not found! Check file path.")
+        result_entry.config(state="normal")
+        result_entry.delete(0, tk.END)
+        result_entry.insert(0, "Error: EFF word list file not found! Check file path.")
+        result_entry.config(state="readonly")
         return # Exit function if the file is not found.
             
     num_rolls = 5
     diceRoll = []
     final_passphrase = []
+    
+    try:
+        max_length = int(max_char_str)
+        if max_length <= 0:
+            result_entry.config(state="normal")
+            result_entry.delete(0, tk.END)
+            result_entry.insert(0, "Maximum length must be a positive number.")
+            result_entry.config(state="readonly")
+            return
+    except:
+            result_entry.config(state="normal")
+            result_entry.delete(0, tk.END)
+            result_entry.insert(0, "Invalid input. Please enter a whole number.")
+            result_entry.config(state="readonly")
+            return
 
     try:
         num_words = int(num_words_str)
         
     except ValueError:
-        result_entry.config(text="Invalid input. Please enter a whole number.")
+        result_entry.config(state="normal")
+        result_entry.delete(0, tk.END)
+        result_entry.insert(0, "Invalid input. Please enter a whole number.")
+        result_entry.config(state="readonly")
         return
         
     else:
@@ -86,39 +108,56 @@ def generate_passphrase():
         elif num_pos == "e":
             final_passphrase.append(str(random_number))
         else:
-            result_entry.config(text="Invalid placement option. Numbers not added.")
+            result_entry.config(state="normal")
+            result_entry.delete(0, tk.END)
+            result_entry.insert(0, "Invalid placement option. Numbers not added.")
+            result_entry.config(state="readonly")
     else:
         pass #User doesn't want numbers? Cool, do nothing.
         
-        if sym_check == True:
+        if symbol == True:
 
             if defaultsym == False:
                 if user_sym: # Only choose if the string is not empty
                     random_symbol = str(random.choice(user_sym))
+                else:
+                    pass
             else: # Fallback to default if user enters nothing
-                random_symbol = str(random.choice(default_special)) 
-        else:
-            random_symbol = str(random.choice(default_special))
+                random_symbol = str(random.choice(default_special))
 
-        if sym_pos == "b": # Symbol position radial selection
-            final_passphrase.insert(0, str(random_symbol))
-        elif sym_pos == "m":
-            middle_index = len(final_passphrase) // 2
-            final_passphrase.insert(middle_index, str(random_symbol))
-        elif sym_pos == "e":
-            final_passphrase.append(str(random_symbol))
-        elif sym_pos == "w":
-            final_passphrase = random_symbol.join(final_passphrase)
+            if sym_pos == "b": # Symbol position radial selection
+                final_passphrase.insert(0, str(random_symbol))
+            elif sym_pos == "m":
+                middle_index = len(final_passphrase) // 2
+                final_passphrase.insert(middle_index, str(random_symbol))
+            elif sym_pos == "e":
+                final_passphrase.append(str(random_symbol))
+            elif sym_pos == "w":
+                final_passphrase = random_symbol.join(final_passphrase)
+            else:
+                result_entry.config(state="normal")
+                result_entry.delete(0, tk.END)
+                result_entry.insert(0, "Invalid symbol placement option. Symbol not added.")
+                result_entry.config(state="readonly")
+                
         else:
-            print("Invalid symbol placement option. Symbol not added.")
-
-# The read-only shuffle!
+            pass
+        
+        # The Max Character Limit Check
         final_passphrase = " ".join(final_passphrase)
-        result_entry.config(state="normal") 
-        result_entry.delete(0, tk.END)
-        result_entry.insert(0, final_passphrase)
-        result_entry.config(state="readonly")
-        pass
+        if max_length > 0 and len(final_passphrase) > max_length:
+                final_passphrase = final_passphrase[:max_length]
+                result_entry.config(state="normal") 
+                result_entry.delete(0, tk.END)
+                result_entry.insert(0, f"(Truncated) {final_passphrase}")
+                result_entry.config(state="readonly")
+        else:
+            result_entry.config(state="normal") 
+            result_entry.delete(0, tk.END)
+            result_entry.insert(0, final_passphrase)
+            result_entry.config(state="readonly")
+            return
+       
 
 # Create the main window
 window = tk.Tk()
@@ -133,6 +172,11 @@ num_words_label = tk.Label(window, text="Enter the number of words: ")
 num_words_label.pack()
 num_words_entry = tk.Entry(window)
 num_words_entry.pack()
+
+max_char_label = tk.Label(window, text="Maximum Passphrase Length:  ")
+max_char_label.pack()
+max_char_entry = tk.Entry(window)
+max_char_entry.pack()
 
 # Checkbutton for Capitalization
 capitalize_var = tk.BooleanVar()
